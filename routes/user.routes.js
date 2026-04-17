@@ -11,5 +11,6 @@ router.post("/register", authController.signUp);
 
 //user database
 router.get("/", userController.getAllUsers);
+router.get("/:id", userController.userInfo);
 
 module.exports = router ;
