@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { isEmail } = require("validator");
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      max: 1024,
+      maxLength: 1024,
       minLength: 6,
     },
     picture: {
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     },
     bio: {
       type: String,
-      max: 1024,
+      maxLength: 1024,
     },
     followers: {
       type: [String],
@@ -50,11 +50,11 @@ const userSchema = new mongoose.Schema(
 );
 
  
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function() {
+  if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);
-  next();
-}); 
+});
 
 
 const UserModel = mongoose.model("user", userSchema);
