@@ -60,3 +60,72 @@ module.exports.deleteUser = async (req, res) => {
         return res.status(500).json({ message : err});
     }
 };
+
+
+
+module.exports.follow = async (req, res) => {
+    if (!ObjectID.isValid(req.params.id)) {
+        return res.status(400).send('ID unknown : ' + req.params.id);
+    }
+    if (!ObjectID.isValid(req.body.idToFollow)) {
+        return res.status(400).send('ID to follow invalid');
+    }
+    if (req.params.id === req.body.idToFollow) {
+        return res.status(400).send(" You can't follow yourself");
+    }
+
+    try {
+        // add to following list the targetUser
+        const currentUser = await UserModel.findByIdAndUpdate(
+            req.params.id,
+            {$addToSet : { following : req.body.idToFollow}},
+            { new : true}
+        )
+
+        if (!currentUser) {
+            return res.status(400).send('Failed to follow');
+        }
+
+        //add to the targetUser follower's list the currentUser
+        const targetUser = await UserModel.findByIdAndUpdate(
+            req.body.idToFollow,
+            {$addToSet : { followers : req.params.id}},
+            { new : true}
+        )
+        if (!targetUser) {
+            return res.status(400).send('Failed to follow');
+        }
+
+        return res.json({
+            success : true,
+            message : 'Successfully followed',
+            currentUser : currentUser,
+            targetUser : targetUser
+        });
+
+
+    } catch (err) {
+        return res.status(500).json({ message : err.message});
+    } 
+};
+
+
+
+module.exports.unfollow = async (req, res) => {
+    if (!ObjectID.isValid(req.params.id)) {
+        return res.status(400).send('ID unknown : ' + req.params.id);
+    }
+    if (!ObjectID.isValid(req.body.idToFollow)) {
+        return res.status(400).send('ID to follow invalid');
+    }
+    if (req.params.id === req.body.idToFollow) {
+        return res.status(400).send(" You can't follow yourself");
+    }
+
+    try {
+        
+
+    } catch (err) {
+        return res.status(500).json({ message : err});
+    } 
+};
