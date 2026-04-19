@@ -21,3 +21,29 @@ module.exports.userInfo = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 }
+
+
+module.exports.updateUser = async (req, res) => {
+    if (!ObjectID.isValid(req.params.id)) {
+        return res.status(400).send('IDunknown : ' + req.params.id);
+    }
+
+    try {
+        const updateUser = await UserModel.findOneAndUpdate(
+            { _id : req.params.id},
+            {
+                $set: {
+                    bio : req.body.bio
+                }
+            },
+            { new : true, upsert : true , setDefaultsOnInsert : true},
+        )
+
+        if (!updateUser) {
+            return res.status(500).send('Fail update');
+        } 
+        return res.send(updateUser);
+    } catch (err) {
+        return res.status(500).json({message : err});
+    }
+};
