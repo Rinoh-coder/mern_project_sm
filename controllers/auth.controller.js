@@ -3,6 +3,7 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config({path: './config/.env'});
 const UserModel = require('../models/user.model');
+//const signUpErrors = require('../utils/errors.utils');
 
 const maxAge = 3*24*60*60
 
@@ -20,11 +21,8 @@ module.exports.signUp = async (req, res) => {
     const user = await UserModel.create({ pseudo, email, password });
     res.status(201).json({ user: user._id });
   } catch (err) {
-    console.error("Erreur détaillée :", err);
-    if (err.code === 11000) {
-      return res.status(400).json({ error: "Pseudo ou email déjà utilisé" });
-    }
-    res.status(400).json({ error: err.message });
+    const errors = signUpErrors(err);
+    res.status(400).send({errors});
   }
 };
 
