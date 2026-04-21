@@ -3,7 +3,6 @@
 const UserModel = require("../models/user.model");
 const ObjectID = require("mongoose").Types.ObjectId;
 
-
 // getAllUsers
 module.exports.getAllUsers = async (req, res) => {
   const users = await UserModel.find().select("-password");
@@ -25,7 +24,6 @@ module.exports.userInfo = async (req, res) => {
     res.status(500).send("Internal server error");
   }
 };
-
 
 // updateUser
 module.exports.updateUser = async (req, res) => {
@@ -53,7 +51,6 @@ module.exports.updateUser = async (req, res) => {
   }
 };
 
-
 // deleteUser
 module.exports.deleteUser = async (req, res) => {
   if (!ObjectID.isValid(req.params.id)) {
@@ -61,13 +58,13 @@ module.exports.deleteUser = async (req, res) => {
   }
 
   try {
-    await UserModel.findOneAndDelete({ _id: req.params.id }).exec();
+    await UserModel.findOneAndDelete({ _id: req.params.id });
     return res.status(200).send("Successfully deleted");
   } catch (err) {
+    console.log(" Erreur : " + err);
     return res.status(500).json({ message: err });
   }
 };
-
 
 // follow
 module.exports.follow = async (req, res) => {
@@ -113,8 +110,6 @@ module.exports.follow = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
-
 
 // unfollow
 module.exports.unfollow = async (req, res) => {

@@ -79,4 +79,19 @@ module.exports.updatePost = async (req, res) => {
 };
 
 // deletePost
-module.exports.deletePost = (req, res) => {};
+module.exports.deletePost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(400).send("ID unknown : " + req.params.id);
+  }
+
+  try {
+    const deletePost = await PostModel.findOneAndDelete({ _id: req.params.id });
+    if (!deletePost) {
+      return res.status(404).send("Post not found");
+    }
+    return res.status(200).send("Successfully deleted");
+  } catch (err) {
+    console.log(" Erreur : " + err);
+    return res.status(500).json({ message: err });
+  }
+};
