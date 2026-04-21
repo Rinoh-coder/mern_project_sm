@@ -11,6 +11,8 @@ const cookieParser = require('cookie-parser');
 
 
 const userRoutes = require('./routes/user.routes');
+const postRoutes = require('./routes/post.routes');
+
 
 const app = express();
 
@@ -28,6 +30,7 @@ app.get('/jwtid', requireAuth, (req, res) => {
 
 //routes
 app.use('/api/user', userRoutes);
+app.use('/api/user', postRoutes);
 
 
 // server
