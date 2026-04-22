@@ -286,3 +286,55 @@ Bien sur on a utilisé un exemple d'un ID d'un post
 }
 
  */
+
+//deleteCommentPost
+module.exports.deleteCommentPost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(400).send("ID post unknown : " + req.params.id);
+  }
+  if (!ObjectID.isValid(req.body.commentId)) {
+    return res.status(400).send("ID comment unknown : " + req.body.commentId);
+  }
+  if (!ObjectID.isValid(req.body.commenterId)) {
+    return res.status(400).send("ID's commenter invalid");
+  }
+
+  try {
+    const updatePost = await PostModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        $pull: {
+          comments : {
+            _id : req.body.commentId,
+            commenterId : req.body.commenterId
+          }
+        }
+      },
+      { new : true}
+    );
+
+    if (!updatePost) {
+      const postExist = await PostModel.findById(req.params.id);
+      if (!postExist) {
+        return res.status(404).send("Post not found");
+      }
+      const commentExist = postExist.comments.find(
+        (comment) => comment._id.toString() === req.body.commentId,
+      );
+      if (!commentExist) {
+        return res.status(404).send("Comment not found");
+      }
+
+      return res.status(403).send("You can delete only your comments");
+
+    }
+
+    return res.json({
+      success: true,
+      message: "Comment Successfully deleted",
+      post: updatePost,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
