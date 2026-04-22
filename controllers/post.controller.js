@@ -3,6 +3,8 @@
 const PostModel = require("../models/post.model");
 const UserModel = require("../models/user.model");
 const ObjectID = require("mongoose").Types.ObjectId;
+const fs = require("fs");
+const path = require("path");
 
 // readPost
 module.exports.readPost = async (req, res) => {
@@ -37,9 +39,54 @@ module.exports.createPost = async (req, res) => {
     return res.status(400).send("Message est requis");
   }
 
+  let fileName = "";
+
+  if (req.file) {
+    try {
+      if (
+        req.file.mimetype !== "image/jpg" &&
+        req.file.mimetype !== "image/png" &&
+        req.file.mimetype !== "image/jpeg"
+      ) {
+        throw new Error("Invalid file format");
+      }
+
+      if (req.file.size > 500000000) {
+        throw new Error("File too large, max size 500Mb");
+      }
+      fileName = req.body.posterId + Date.now() + ".jpg";
+      const uploadDir = `${__dirname}/../client/public/uploads/posts/`;
+
+      // Créer le dossier s'il n'existe pas
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      // Écrire le fichier
+      const filePath = path.join(uploadDir, fileName);
+
+      // Si le fichier est dans req.file.buffer
+      if (req.file.buffer) {
+        fs.writeFileSync(filePath, req.file.buffer);
+      }
+      // Si le fichier a été sauvegardé temporairement
+      else if (req.file.path) {
+        fs.renameSync(req.file.path, filePath);
+      } else {
+        throw new Error("Unable to save file");
+      }      
+    } catch (err) {
+      console.log("  Erreur : " , err);
+      return res.status(500).send(err);
+    }
+
+  }
+
+  const pictureUrl = fileName ? "./uploads/posts/" + fileName : "";
   const newPost = new PostModel({
     posterId: req.body.posterId,
     message: req.body.message,
+    picture: pictureUrl,
     video: req.body.video || "",
     likers: [],
     comments: [],
