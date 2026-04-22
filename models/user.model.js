@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { isEmail } = require("validator");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
@@ -49,24 +49,29 @@ const userSchema = new mongoose.Schema(
   },
 );
 
- 
-userSchema.pre("save", async function() {
+/**
+Ce bloc est un **middleware Mongoose** qui s'exécute **automatiquement avant chaque sauvegarde** d'un utilisateur : il **hash le mot de passe avec bcrypt** uniquement si ce champ a été modifié (création ou mise à jour), garantissant qu'il n'est jamais stocké en clair dans la base de données.
+ */
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-userSchema.statics.login = async function(email, password ) {
-  const user = await this.findOne({email});
+/**
+Ce bloc de code ajoute une méthode statique login au schéma utilisateur pour trouver un utilisateur par son email et vérifier son mot de passe hashé, retournant l'utilisateur si les identifiants sont corrects ou lançant une erreur sinon.
+ */
+userSchema.statics.login = async function (email, password) {
+  const user = await this.findOne({ email });
   if (user) {
     const auth = await bcrypt.compare(password, user.password);
-    if (auth){
+    if (auth) {
       return user;
     }
-    throw Error('incorrect password');
+    throw Error("incorrect password");
   }
-  throw Error('incorrect email');
-}
+  throw Error("incorrect email");
+};
 
 const UserModel = mongoose.model("user", userSchema);
 module.exports = UserModel;

@@ -304,13 +304,13 @@ module.exports.deleteCommentPost = async (req, res) => {
       req.params.id,
       {
         $pull: {
-          comments : {
-            _id : req.body.commentId,
-            commenterId : req.body.commenterId
-          }
-        }
+          comments: {
+            _id: req.body.commentId,
+            commenterId: req.body.commenterId,
+          },
+        },
       },
-      { new : true}
+      { new: true },
     );
 
     if (!updatePost) {
@@ -326,7 +326,6 @@ module.exports.deleteCommentPost = async (req, res) => {
       }
 
       return res.status(403).send("You can delete only your comments");
-
     }
 
     return res.json({

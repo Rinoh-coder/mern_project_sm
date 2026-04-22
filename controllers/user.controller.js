@@ -120,12 +120,6 @@ module.exports.unfollow = async (req, res) => {
     return res.status(400).send("ID to target unfollow invalid");
   }
 
-  // we have already make impossible to follow ourself so these codes are not useful
-
-  //if (req.params.id === req.body.idToUnfollow) {
-  //  return res.status(400).send(" You can't unfollow yourself");
-  //}
-
   try {
     // add to following list the targetUser
     const currentUser = await UserModel.findByIdAndUpdate(
