@@ -5,7 +5,6 @@ const authController = require("../controllers/auth.controller");
 const userController = require("../controllers/user.controller");
 const uploadController = require("../controllers/upload.controller");
 
-
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -24,6 +23,6 @@ router.patch("/follow/:id", userController.follow);
 router.patch("/unfollow/:id", userController.unfollow);
 
 //upload
-router.post('/upload', upload.single('file'), uploadController.uploadProfil);
+router.post("/upload", upload.single("file"), uploadController.uploadProfil);
 
 module.exports = router;

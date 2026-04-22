@@ -74,12 +74,11 @@ module.exports.createPost = async (req, res) => {
         fs.renameSync(req.file.path, filePath);
       } else {
         throw new Error("Unable to save file");
-      }      
+      }
     } catch (err) {
-      console.log("  Erreur : " , err);
+      console.log("  Erreur : ", err);
       return res.status(500).send(err);
     }
-
   }
 
   const pictureUrl = fileName ? "./uploads/posts/" + fileName : "";
