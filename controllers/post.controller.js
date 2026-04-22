@@ -95,3 +95,89 @@ module.exports.deletePost = async (req, res) => {
     return res.status(500).json({ message: err });
   }
 };
+
+//likePost
+module.exports.likePost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(400).send("ID post unknown : " + req.params.id);
+  }
+  if (!ObjectID.isValid(req.body.idLiker)) {
+    return res.status(400).send("ID's liker invalid");
+  }
+
+  try {
+    const userExist = await UserModel.findById(req.body.idLiker);
+    if (!userExist) {
+      return res.status(404).send("User liker not found");
+    }
+    const postLikers = await PostModel.findByIdAndUpdate(
+      req.params.id,
+      { $addToSet: { likers: req.body.idLiker } },
+      { new: true },
+    );
+
+    if (!postLikers) {
+      return res.status(400).send("Failed to be liked");
+    }
+
+    const likesUser = await UserModel.findByIdAndUpdate(
+      req.body.idLiker,
+      { $addToSet: { likes: req.params.id } },
+      { new: true },
+    );
+    if (!likesUser) {
+      return res.status(400).send("Failed to like");
+    }
+
+    return res.json({
+      success: true,
+      message: "Successfully liked",
+      post: postLikers,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+//unlikePost
+module.exports.unlikePost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(400).send("ID post unknown : " + req.params.id);
+  }
+  if (!ObjectID.isValid(req.body.idUnliker)) {
+    return res.status(400).send("ID's unliker invalid");
+  }
+
+  try {
+    const userExist = await UserModel.findById(req.body.idUnliker);
+    if (!userExist) {
+      return res.status(404).send("User unliker not found");
+    }
+    const postLikers = await PostModel.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { likers: req.body.idUnliker } },
+      { new: true },
+    );
+
+    if (!postLikers) {
+      return res.status(400).send("Failed to be unliked");
+    }
+
+    const likesUser = await UserModel.findByIdAndUpdate(
+      req.body.idUnliker,
+      { $pull: { likes: req.params.id } },
+      { new: true },
+    );
+    if (!likesUser) {
+      return res.status(400).send("Failed to unlike");
+    }
+
+    return res.json({
+      success: true,
+      message: "Successfully unliked",
+      post: postLikers,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
