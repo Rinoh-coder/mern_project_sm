@@ -181,3 +181,44 @@ module.exports.unlikePost = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
+//commentPost
+module.exports.commentPost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(400).send("ID post unknown : " + req.params.id);
+  }
+  if (!req.body.commenterId || !ObjectID.isValid(req.body.commenterId)) {
+    return res.status(400).send("Comment Id not valid");
+  }
+  if (!req.body.text || req.body.text.trim() === "") {
+    return res.status(400).send("Text required")
+  }
+
+  
+  try {
+    const user = await UserModel.findById(req.body.commenterId);
+    if (!user) {
+        return res.status(404).send("User commenter not found");
+    }
+    const newComment = await PostModel.findByIdAndUpdate(
+        req.params.id,
+        {
+            $push : {
+                comments : {
+                    commenterId : req.body.commenterId,
+                    commenterPseudo : user.pseudo,
+                    text : req.body.text.trim(),
+                    timestamp : Date.now()
+                }
+            }
+        },
+        { new : true}
+    );
+    if (!newComment) {
+        return res.status(400).send("failed to comment the post");
+    }
+    return res.status(201).send("Succefully commented");
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }    
+};
