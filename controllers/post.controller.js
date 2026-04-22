@@ -7,7 +7,7 @@ const ObjectID = require("mongoose").Types.ObjectId;
 // readPost
 module.exports.readPost = async (req, res) => {
   try {
-    const posts = await PostModel.find();
+    const posts = await PostModel.find().sort({ createdAt : -1 });
     if (posts.length === 0) {
       return res.status(404).send("No post to read !");
     }
