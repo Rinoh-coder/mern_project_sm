@@ -7,7 +7,7 @@ const ObjectID = require("mongoose").Types.ObjectId;
 // readPost
 module.exports.readPost = async (req, res) => {
   try {
-    const posts = await PostModel.find().sort({ createdAt : -1 });
+    const posts = await PostModel.find().sort({ createdAt: -1 });
     if (posts.length === 0) {
       return res.status(404).send("No post to read !");
     }
@@ -191,34 +191,98 @@ module.exports.commentPost = async (req, res) => {
     return res.status(400).send("Comment Id not valid");
   }
   if (!req.body.text || req.body.text.trim() === "") {
-    return res.status(400).send("Text required")
+    return res.status(400).send("Text required");
   }
 
-  
   try {
     const user = await UserModel.findById(req.body.commenterId);
     if (!user) {
-        return res.status(404).send("User commenter not found");
+      return res.status(404).send("User commenter not found");
     }
     const newComment = await PostModel.findByIdAndUpdate(
-        req.params.id,
-        {
-            $push : {
-                comments : {
-                    commenterId : req.body.commenterId,
-                    commenterPseudo : user.pseudo,
-                    text : req.body.text.trim(),
-                    timestamp : Date.now()
-                }
-            }
+      req.params.id,
+      {
+        $push: {
+          comments: {
+            commenterId: req.body.commenterId,
+            commenterPseudo: user.pseudo,
+            text: req.body.text.trim(),
+            timestamp: Date.now(),
+          },
         },
-        { new : true}
+      },
+      { new: true },
     );
     if (!newComment) {
-        return res.status(400).send("failed to comment the post");
+      return res.status(400).send("failed to comment the post");
     }
     return res.status(201).send("Succefully commented");
   } catch (err) {
     return res.status(500).json({ message: err.message });
-  }    
+  }
 };
+
+//editCommentPost
+module.exports.editCommentPost = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.status(400).send("ID post unknown : " + req.params.id);
+  }
+
+  if (!req.body.commenterId || !ObjectID.isValid(req.body.commenterId)) {
+    return res.status(400).send("Commenter Id not valid");
+  }
+
+  if (!req.body.commentId) {
+    return res.status(400).send("Comment Id required");
+  }
+
+  try {
+    const post = await PostModel.findById(req.params.id);
+    if (!post) {
+      return res.status(404).send("Post not found");
+    }
+
+    const comment = post.comments.find(
+      (comment) => comment._id.toString() === req.body.commentId,
+      // on peut utiliser aussi la version ici en bas, mais moins robuste, mis juste pour apprendre
+      //(comment) => comment._id.equals(req.body.commentId)
+    );
+
+    if (!comment) {
+      return res.status(404).send("Comment not found");
+    }
+
+    // Vérifier que c'est l'auteur du commentaire
+    if (comment.commenterId.toString() !== req.body.commenterId) {
+      return res.status(403).send("You can only edit your own comments");
+    }
+
+    comment.text = req.body.text.trim();
+
+    // SAUVEGARDER en base de données
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Comment edited successfully",
+      post: post,
+    });
+  } catch (err) {
+    console.log("Erreur : " + err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Pour ne pas perdre le fil en test avec postman, voici le body
+ Méthode : PATCH
+URL : http://localhost:5000/api/post/edit-comment-post/67e7e1ce21e1c00ecc3b9346
+Bien sur on a utilisé un exemple d'un ID d'un post
+
+{
+    "commenterId": "65f9a8b3c4d5e6f7a8b9c0d1",
+    "commentId": "67e7e1ce21e1c00ecc3b9350",
+    "text": "Mon commentaire modifié avec succès !"
+}
+
+ */
